@@ -1,5 +1,8 @@
 ## Environment Variables
-Edit environment variables if necessary found in client/.env
+Edit environment variables if necessary found in the two .env files:
+### `client/.env`
+### `server/.env`
+
 
 ## Server
 Run the event_source dashboard server at localhost:5000

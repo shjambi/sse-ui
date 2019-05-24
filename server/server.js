@@ -65,11 +65,15 @@ function getAllEventsFromPostgres(response, eventHistory) {
 } 
 
 function getNewEventFromRedis(response, eventHistory) {
-  var Redis = require('ioredis');
-  var redis = new Redis();
+  var redis = require('ioredis');
+  // var redis = new Redis();
+  var client    = redis.createClient({
+    port      : process.env.REDIS_PORT,
+    host      : process.env.REDIS_URL
+  });
   var channel = 'new_event_created';
   
-  redis.on('message', (channel, message) => {
+  client.on('message', (channel, message) => {
     if (!response.finished) {
       console.log(`\nReceived the following message from ${channel}: ${message}`);
       let eventChannel = 'newEventChannel'    
@@ -78,14 +82,25 @@ function getNewEventFromRedis(response, eventHistory) {
       eventHistory.push(eventString);
      }
   })
+
+  client.subscribe(channel, (error) => {
+    if (error) {
+        throw new Error(error);
+    }
+    console.log(`Listening for updates on ${channel} Redis channel.`);
+  });
 }
   
 function getNewProcessFromRedis(response, eventHistory) {
-  var Redis = require('ioredis');
-  var redis = new Redis();
+  var redis = require('ioredis');
+  // var redis = new Redis();
+  var client    = redis.createClient({
+    port      : process.env.REDIS_PORT,
+    host      : process.env.REDIS_URL
+  });
   var channel = 'processed_technique_created';
   
-  redis.on('message', (channel, message) => {
+  client.on('message', (channel, message) => {
     if (!response.finished) {
       console.log(`\nReceived the following message from ${channel}: ${message}`);
       let processChannel = 'newProcessChannel'    
@@ -95,11 +110,11 @@ function getNewProcessFromRedis(response, eventHistory) {
       }
   })
 
-  redis.subscribe(channel, (error) => {
+  client.subscribe(channel, (error) => {
     if (error) {
         throw new Error(error);
     }
-    console.log(`\nListening for updates on ${channel} Redis channel.`);
+    console.log(`Listening for updates on ${channel} Redis channel.`);
   });
 } 
 //https://medium.com/@ridwanfajar/using-redis-pub-sub-with-node-js-its-quite-easy-c9c8b4dae79f
