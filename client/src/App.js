@@ -1,4 +1,4 @@
-import React, { Component, cloneElement } from 'react';
+import React, { Component } from 'react';
 import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import 'react-table/react-table.css';
 import Home from './Home';
@@ -20,15 +20,14 @@ class App extends Component {
     };
     this.handleNewEvent = this.handleNewEvent.bind(this);
     this.handleNewProcess = this.handleNewProcess.bind(this);
-    this.eventSource = new EventSource('http://localhost:5000/events');
+    // this.eventSource = new EventSource(`${config.ui_server_address}:${config.ui_server_port}/events`);
+    this.eventSource = new EventSource(process.env.REACT_APP_EVENTSOURCE);
   }
-  
+
   componentDidMount() {
     this.getEventAPI()
     this.getProcessAPI()
     // Modal.setAppElement(this.el);
-    // this.eventSource.addEventListener('flightStateUpdate', (e) => this.updateFlightState(JSON.parse(e.data)));
-    // this.eventSource.addEventListener('flightRemoval', (e) => this.removeFlight(JSON.parse(e.data)));
     // this.eventSource.addEventListener('existingEventChannel', (e) => this.getEvent(JSON.parse(e.data)));
     this.eventSource.addEventListener('newEventChannel', (e) => this.getEvent(JSON.parse(e.data)));
     this.eventSource.addEventListener('newProcessChannel', (e) => this.getProcess(JSON.parse(e.data)));
@@ -45,7 +44,7 @@ class App extends Component {
     // fetch("http://localhost:3000/events")
     // .then(response=>response.json())
     // .then(response=>console.log(JSON.stringify(response)))
-    axios.get("http://localhost:3000/events").then(
+    axios.get(process.env.REACT_APP_BACKEND_EVENTS).then(
       result => {
         // alert(result)
         this.setState({
@@ -67,7 +66,7 @@ class App extends Component {
   postEventAPI(newEvent) {
     // alert(JSON.stringify(newEvent))
     const axios = require('axios');
-    axios.post('http://localhost:3000/events', newEvent)
+    axios.post(process.env.REACT_APP_BACKEND_EVENTS, newEvent)
       .then(function(response){
         console.log("POST Sucess")
         // alert(JSON.stringify(response));
@@ -88,7 +87,7 @@ class App extends Component {
     // fetch("http://localhost:3000/events")
     // .then(response=>response.json())
     // .then(response=>console.log(JSON.stringify(response)))
-    axios.get("http://localhost:3000/processing_techniques").then(
+    axios.get(process.env.REACT_APP_BACKEND_PROCESSING_TECH).then(
       result => {
         this.setState({
           isProcessDataLoaded: true,
@@ -108,7 +107,7 @@ class App extends Component {
   postProcessAPI(newProcess) {
     // alert(JSON.stringify(newProcess))
     const axios = require('axios');
-    axios.post('http://localhost:3000/processing_techniques', newProcess)
+    axios.post(process.env.REACT_APP_BACKEND_PROCESSING_TECH, newProcess)
       .then(function(response){
         console.log("POST Sucess")
         // alert(JSON.stringify(response));

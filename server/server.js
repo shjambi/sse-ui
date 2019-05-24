@@ -9,7 +9,7 @@ http.createServer((request, response) => {
     closeConnection(response);
   });
 
-  if (request.url.toLowerCase() === '/events') {
+  if (request.url.toLowerCase() === '/eventsource') {
     response.writeHead(200, {
       'Connection': 'keep-alive',
       'Content-Type': 'text/event-stream',
@@ -31,7 +31,7 @@ http.createServer((request, response) => {
     response.end();  
   }
 }).listen(5000, () => {
-  console.log('Server running at http://127.0.0.1:5000/');
+  console.log(`Server running at localhost:5000`);
 });
 
 
