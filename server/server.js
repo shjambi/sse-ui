@@ -34,42 +34,12 @@ http.createServer((request, response) => {
   console.log(`Server running at localhost:5000`);
 });
 
-
-function getAllEventsFromPostgres(response, eventHistory) {
-  const Pool = require('pg').Pool
-  const pool = new Pool({
-    user: 'me',
-    host: 'localhost',
-    database: 'test',
-    password: 'password',
-    port: 5432,
-  })
-  pool.query('SELECT * FROM events ORDER BY name ASC', (error, results) => {
-    if (error) {
-      throw error
-    }
-    // response.status(200).json(results.rows)
-    if (results) {
-      if (!response.finished) {
-        console.log(`\nRetrieving existing events from Postgres:`);
-        let eventChannel = 'existingEventChannel'
-        results.rows.forEach((event) => {
-          const eventString = `event: ${eventChannel}\ndata: ${JSON.stringify(event)}\n\n`;
-          response.write(eventString);
-          eventHistory.push(eventString);           
-          console.log(event);
-        })
-      }
-    }
-  })
-} 
-
 function getNewEventFromRedis(response, eventHistory) {
   var redis = require('ioredis');
   // var redis = new Redis();
   var client    = redis.createClient({
     port      : process.env.REDIS_PORT,
-    host      : process.env.REDIS_URL
+    host      : process.env.REDIS_HOST
   });
   var channel = 'new_event_created';
   
@@ -96,7 +66,7 @@ function getNewProcessFromRedis(response, eventHistory) {
   // var redis = new Redis();
   var client    = redis.createClient({
     port      : process.env.REDIS_PORT,
-    host      : process.env.REDIS_URL
+    host      : process.env.REDIS_HOST
   });
   var channel = 'processed_technique_created';
   
@@ -124,7 +94,10 @@ function getNewProcessFromRedis(response, eventHistory) {
 
 function getCountFromRedis(response, eventHistory) {
   var redis = require('redis');
-  var client = redis.createClient();
+  var client    = redis.createClient({
+    port      : process.env.REDIS_PORT,
+    host      : process.env.REDIS_HOST
+  });
 
   client.on('connect', function() {
     console.log('Redis client connected')
@@ -156,38 +129,66 @@ function getCountFromRedis(response, eventHistory) {
 }
 // https://hackernoon.com/using-redis-with-node-js-8d87a48c5dd7
 
+// function getAllEventsFromPostgres(response, eventHistory) {
+//   const Pool = require('pg').Pool
+//   const pool = new Pool({
+//     user: 'me',
+//     host: 'localhost',
+//     database: 'test',
+//     password: 'password',
+//     port: 5432,
+//   })
+//   pool.query('SELECT * FROM events ORDER BY name ASC', (error, results) => {
+//     if (error) {
+//       throw error
+//     }
+//     // response.status(200).json(results.rows)
+//     if (results) {
+//       if (!response.finished) {
+//         console.log(`\nRetrieving existing events from Postgres:`);
+//         let eventChannel = 'existingEventChannel'
+//         results.rows.forEach((event) => {
+//           const eventString = `event: ${eventChannel}\ndata: ${JSON.stringify(event)}\n\n`;
+//           response.write(eventString);
+//           eventHistory.push(eventString);           
+//           console.log(event);
+//         })
+//       }
+//     }
+//   })
+// } 
 
-function readTweetFromKafka(response, eventHistory) {
-  var kafka = require('kafka-node')
-  var client = new kafka.KafkaClient({kafkaHost: 'localhost:9092'})
-  var Consumer = kafka.Consumer
-  var topic = 'test2';
+// function readTweetFromKafka(response, eventHistory) {
+//   var kafka = require('kafka-node')
+//   var client = new kafka.KafkaClient({kafkaHost: 'localhost:9092'})
+//   var Consumer = kafka.Consumer
+//   var topic = 'test2';
 
-  client.on('connect', function() {
-    console.log('Kafka client connected')
-  });
+//   client.on('connect', function() {
+//     console.log('Kafka client connected')
+//   });
 
-  client.on('error', function(err) {
-    console.log('Something went wrong with Kafka client: ' + err)
-  });
+//   client.on('error', function(err) {
+//     console.log('Something went wrong with Kafka client: ' + err)
+//   });
 
-  var consumer = new Consumer(
-    client, [{topic: topic, partition: 0, offset: 0}], {fromOffset: true}
-  );
+//   var consumer = new Consumer(
+//     client, [{topic: topic, partition: 0, offset: 0}], {fromOffset: true}
+//   );
 
-  let messageId = 0;
+//   let messageId = 0;
 
-  consumer.on('message', function(message){
-    if (!response.finished){
-      let tweetChannel = 'kafkaTweetStreamChannel'   
-      const eventString = `id: ${messageId}\nevent: ${tweetChannel}\ndata: ${message.value}\n\n`;
-      response.write(eventString);
-      eventHistory.push(eventString);
-      console.log(message.value);
-      messageId += 1;
-    }
-  })
-}
+//   consumer.on('message', function(message){
+//     if (!response.finished){
+//       let tweetChannel = 'kafkaTweetStreamChannel'   
+//       const eventString = `id: ${messageId}\nevent: ${tweetChannel}\ndata: ${message.value}\n\n`;
+//       response.write(eventString);
+//       eventHistory.push(eventString);
+//       console.log(message.value);
+//       messageId += 1;
+//     }
+//   })
+// }
 
 function closeConnection(response) {
   if (!response.finished) {

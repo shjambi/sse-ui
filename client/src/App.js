@@ -20,7 +20,6 @@ class App extends Component {
     };
     this.handleNewEvent = this.handleNewEvent.bind(this);
     this.handleNewProcess = this.handleNewProcess.bind(this);
-    // this.eventSource = new EventSource(`${config.ui_server_address}:${config.ui_server_port}/events`);
     this.eventSource = new EventSource(process.env.REACT_APP_EVENTSOURCE);
   }
 
