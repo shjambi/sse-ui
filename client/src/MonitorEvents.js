@@ -18,7 +18,7 @@ class MonitorEvents extends Component {
             result => {
                 var process_dic = result.data['processing_jobs'];     
                 var processList = [];       
-                if (JSON.stringify(process_dic) != '{}') {                                        
+                if (JSON.stringify(process_dic) !== '{}') {                                        
                     for(var process in process_dic) {
                         var jsonProcessData = {};
                         jsonProcessData["name"] = process;

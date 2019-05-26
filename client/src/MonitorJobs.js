@@ -18,7 +18,7 @@ class MonitorJobs extends Component {
             result => {
                 var event_dic = result.data['events'];     
                 var eventList = [];       
-                if (JSON.stringify(event_dic) != '{}') {                                        
+                if (JSON.stringify(event_dic) !== '{}') {                                        
                     for(var event in event_dic) {
                         var jsonEventData = {};
                         jsonEventData["name"] = event;

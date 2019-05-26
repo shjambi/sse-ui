@@ -37,13 +37,13 @@ class ProcessHeader extends Component {
     return (
         <div style={styles}>
           <h4>Processing Techniques</h4>
-          <a href='#' onClick={this.openSlider}>New Processing Techniques</a>
+          <a href='' onClick={this.openSlider}>New Processing Techniques</a>
           <Slider 
             verticalOffset={{top: 118, bottom: 0}}
             title='Processing Technique Form'
             footer={
               <div style={{padding: '15px'}}>
-                <a href='#' onClick={this.closeSlider}>Close Form</a>
+                <a href='' onClick={this.closeSlider}>Close Form</a>
               </div>
             }
             isOpen={this.state.isOpen}
