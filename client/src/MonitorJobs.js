@@ -14,7 +14,7 @@ class MonitorJobs extends Component {
     getMonitoredJobAPI() {
         const axios = require('axios');
         let processId = this.props.processId;
-        axios.get("http://localhost:3000/monitor_jobs/" + processId).then(
+        axios.get(process.env.REACT_APP_BACKEND_MONITOR_JOBS + processId).then(
             result => {
                 var event_dic = result.data['events'];     
                 var eventList = [];       
