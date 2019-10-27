@@ -30,14 +30,14 @@ class ProcessHeader extends Component {
     });
   }
   handleNewProcess(newProcess) {
-    // alert(JSON.stringify(newProcess))
     this.props.onNewProcess(newProcess);
   }
+  
   render () {
     return (
-        <div style={styles}>
+        <div>
           <h4>Processing Techniques</h4>
-          <a href='' onClick={this.openSlider}>New Processing Techniques</a>
+          <a href='#' onClick={this.openSlider}>Add New Processing Technique</a>
           <Slider 
             verticalOffset={{top: 118, bottom: 0}}
             title='Processing Technique Form'
@@ -52,6 +52,8 @@ class ProcessHeader extends Component {
               <ProcessForm onNewProcess={this.handleNewProcess}/>
             </div>
             </Slider>
+            <br/>
+            <br/>
         </div>
       );
   };

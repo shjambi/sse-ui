@@ -7,7 +7,7 @@ class EventForm extends Component {
       newEvent: {
         name: '',
         terms: [],
-        active: false,
+        active: true,
         // created_at: "",
         // updated_at: "",
         // ended_at: ""
@@ -41,8 +41,7 @@ class EventForm extends Component {
     )
   }
 
-  handleSubmit (e) {
-    // alert(JSON.stringify(this.state.newEvent))
+  handleSubmit(e) {
     console.log('Form value: ' + this.state.newEvent.name);
     var form = e.target;
     e.preventDefault();
@@ -52,7 +51,7 @@ class EventForm extends Component {
       newEvent: {
         name: '',
         terms: [],
-        active: false
+        active: true
       }       
     });   
     form.reset(); 
@@ -81,17 +80,17 @@ class EventForm extends Component {
               type="text" 
               name="terms" 
               style={{width: "600px"}}
-              placeholder="Enter terms sperated by commas"
+              placeholder="Enter terms separated by commas"
               value={this.state.newEvent.terms} 
               onChange={this.handleEventTermsInputChange}/>
           </label>
           <br/>
           <label >
-            <h6 style={{marginTop: "10px"}}>Is Active: &emsp;          
+            <h6 style={{marginTop: "10px"}}>Active: &emsp;          
             <input 
               type="checkbox" 
               name="active" 
-              value={this.state.newEvent.active} 
+              defaultChecked={this.state.newEvent.active} 
               onChange={this.handleEventActiveInputChange}/>  
               </h6>                    
           </label>  

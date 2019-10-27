@@ -31,34 +31,49 @@ class ProcessForm extends Component {
   }
   handleSubmit (e) {
     console.log('Form value: ' + this.state.newProcess.name);
+    var form = e.target;
     e.preventDefault();
+    // e.target.reset();
     this.props.onNewProcess(this.state.newProcess);
+    this.setState({
+      newProcess: {
+        name: '',
+        version: 0.0,
+        url: "",
+        active: true,
+      }       
+    });   
+    form.reset(); 
   }
+
   render() {
     return (
       <div>
-        <h5 style={{textAlign: 'left', height: '2px'}}>Add New Process:</h5>
+        <h6>Add New Processing Technique:</h6>
         <form 
           style={{textAlign: 'left', fontSize: '14px'}} 
           onSubmit={this.handleSubmit}>
           <br/>     
           <label>
-            Name:
+            <h6>Name:</h6>
             <input
               type="text" 
               name="name" 
+              style={{width: "600px"}}
               value={this.state.newProcess.name} 
               onChange={this.handleProcessNameInputChange}/>
           </label>
           <br/>
           <label>
-            URL:
+            <h6>URL:</h6>
             <input
               type="text" 
               name="url" 
+              style={{width: "600px"}}
               value={this.state.newProcess.url} 
               onChange={this.handleProcessUrlInputChange}/>
           </label>
+          <br/>
           <br/>
           <input type="submit" value="Submit"/>
         </form>

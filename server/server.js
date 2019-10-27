@@ -18,13 +18,11 @@ http.createServer((request, response) => {
     });
 
     checkConnectionToRestore(request, response, eventHistory);
-    // sendEvents(response, eventHistory);
-    
-    // getAllEventsFromPostgres(response, eventHistory);
-    getNewEventFromRedis(response, eventHistory);
-    getNewProcessFromRedis(response, eventHistory);
-    // getCountFromRedis(response, eventHistory);
+    getCounterFromRedis(response, eventHistory);
+    getCountFromRedis(response, eventHistory);
+    getResultFromRedis(response, eventHistory);
     // readTweetFromKafka(response, eventHistory);
+    // getAllEventsFromPostgres(response, eventHistory)
 
   } else {
     response.writeHead(404);
@@ -34,66 +32,45 @@ http.createServer((request, response) => {
   console.log(`Server running at localhost:5000`);
 });
 
-function getNewEventFromRedis(response, eventHistory) {
-  var redis = require('ioredis');
-  // var redis = new Redis();
+function getCounterFromRedis(response, eventHistory){
+  var max = 2147483647;
+  var redis = require('redis');
   var client    = redis.createClient({
     port      : process.env.REDIS_PORT,
     host      : process.env.REDIS_HOST
   });
-  var channel = 'new_event_created';
-  
-  client.on('message', (channel, message) => {
-    if (!response.finished) {
-      console.log(`\nReceived the following message from ${channel}: ${message}`);
-      let eventChannel = 'newEventChannel'    
-      const eventString = `event: ${eventChannel}\ndata: ${message}\n\n`;
-      response.write(eventString);
-      eventHistory.push(eventString);
-     }
-  })
-
-  client.subscribe(channel, (error) => {
-    if (error) {
-        throw new Error(error);
+  client.on('error', function(err){
+    console.log('Something went wrong ', err)
+  });
+  client.keys('*:counter', function(error, keys) {
+    if (error) throw error;
+    // console.log('GET keys ->', keys)
+    for (let j = 0; j < keys.length; j++){
+      var i = 0;
+      function f() {
+          // console.log(keys[j],i);
+          if (!response.finished) {
+            client.get(keys[j], function(error, count) {
+              if (error) throw error;
+              // console.log(keys[j] + ' GET new count ->', count)
+              const eventString = `event: redisTweetCount\ndata: {"key":"${keys[j]}", "value":"${count}"}\n\n`;    
+              response.write(eventString);
+              eventHistory.push(eventString);
+            }); 
+          }             
+          i++;
+          if( i < max ){
+              setTimeout( f, 1000 );
+          }
+      }
+      f();
     }
-    console.log(`Listening for updates on ${channel} Redis channel.`);
   });
 }
-  
-function getNewProcessFromRedis(response, eventHistory) {
-  var redis = require('ioredis');
-  // var redis = new Redis();
-  var client    = redis.createClient({
-    port      : process.env.REDIS_PORT,
-    host      : process.env.REDIS_HOST
-  });
-  var channel = 'processed_technique_created';
-  
-  client.on('message', (channel, message) => {
-    if (!response.finished) {
-      console.log(`\nReceived the following message from ${channel}: ${message}`);
-      let processChannel = 'newProcessChannel'    
-      const processString = `event: ${processChannel}\ndata: ${message}\n\n`;
-      response.write(processString);
-      eventHistory.push(processString);
-      }
-  })
-
-  client.subscribe(channel, (error) => {
-    if (error) {
-        throw new Error(error);
-    }
-    console.log(`Listening for updates on ${channel} Redis channel.`);
-  });
-} 
-//https://medium.com/@ridwanfajar/using-redis-pub-sub-with-node-js-its-quite-easy-c9c8b4dae79f
-// redis|⇒ redis-cli
-// 127.0.0.1:6379> publish new_event_created "{\"name\":\"2012 Hurricane Sandy\", \"terms\": [\"storm\", \"Caribbean\"], \"active\": true}"
-
 
 function getCountFromRedis(response, eventHistory) {
-  var redis = require('redis');
+  // var redis = require('redis');
+  var redis = require('ioredis');
   var client    = redis.createClient({
     port      : process.env.REDIS_PORT,
     host      : process.env.REDIS_HOST
@@ -109,25 +86,57 @@ function getCountFromRedis(response, eventHistory) {
 
   var subscriber = redis.createClient();
   subscriber.config('set', 'notify-keyspace-events', 'KEA');
-  var myKey = 'my-test-key';
-  subscriber.subscribe('__keyevent@0__:set', myKey);
-
+  subscriber.subscribe('__keyevent@0__:set', '__keyevent@0__:incr');
   subscriber.on('message', function(channel, key) {
     if (!response.finished) {
-      client.get(myKey, function(error, value) {
+      client.get(key, function(error, value) {
         if (error) {
           console.log(error);
           throw error;
         }
-        const eventString = `event: redisTweetCount\n data: ${value}\n\n`;
+        const eventString = `event: redisTweetCount\ndata: {"key":"${key}", "value":"${value}"}\n\n`;    
         response.write(eventString);
         eventHistory.push(eventString);
-        console.log(`GET value of #{} -> ` + value );
       })
     }
   });
 }
-// https://hackernoon.com/using-redis-with-node-js-8d87a48c5dd7
+
+function getResultFromRedis(response, eventHistory){
+  var max = 2147483647;
+  var redis = require('redis');
+  var client    = redis.createClient({
+    port      : process.env.REDIS_PORT,
+    host      : process.env.REDIS_HOST
+  });
+  client.on('error', function(err){
+    console.log('Something went wrong ', err)
+  });
+  client.keys('*:result', function(error, keys) {
+    if (error) throw error;
+    // console.log('GET keys ->', keys)
+    for (let j = 0; j < keys.length; j++){
+      var i = 0;
+      function f() {
+          if (!response.finished) {
+            client.lrange(keys[j], 0, 99, function(error, result) {
+              if (error) throw error;
+              const eventString = `event: redisTweetResult\ndata: {"key":"${keys[j]}", "value":[${result}]}\n\n`;    
+              // console.log(j)
+              // console.log(eventHistory)
+              response.write(eventString);
+              eventHistory.push(eventString);
+            }); 
+          }             
+          i++;
+          if( i < max ){
+              setTimeout( f, 3000 );
+          }
+      }
+      f();
+    }
+  });
+}
 
 // function getAllEventsFromPostgres(response, eventHistory) {
 //   const Pool = require('pg').Pool
@@ -177,7 +186,6 @@ function getCountFromRedis(response, eventHistory) {
 //   );
 
 //   let messageId = 0;
-
 //   consumer.on('message', function(message){
 //     if (!response.finished){
 //       let tweetChannel = 'kafkaTweetStreamChannel'   

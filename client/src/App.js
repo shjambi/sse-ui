@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Switch, Route, Link } from 'react-router-dom';
 import 'react-table/react-table.css';
 import Home from './Home';
 import EventsMainPage from './EventsMainPage';
-import HistoricalEventsMainPage from './HistoricalEventsMainPage';
 import ProcessesMainPage from './ProcessesMainPage';
 import 'react-sliding-pane/dist/react-sliding-pane.css';
 
@@ -11,81 +10,89 @@ class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      events: [], //getInitialEventData(),
+      sse: {},
+      events: [],
       isEventDataLoaded: false,
-      processes: [], //getInitialProcessData(),
+      processes: [],
       isProcessDataLoaded: false,
       isPaneOpen: false,
       isPaneOpenLeft: false,
+      
     };
     this.handleNewEvent = this.handleNewEvent.bind(this);
     this.handleNewProcess = this.handleNewProcess.bind(this);
-    this.eventSource = new EventSource(process.env.REACT_APP_EVENTSOURCE);
+    this.eventSource = new EventSource(process.env.REACT_APP_EVENTSOURCE)
   }
 
   componentDidMount() {
     this.getEventAPI()
     this.getProcessAPI()
-    // Modal.setAppElement(this.el);
-    // this.eventSource.addEventListener('existingEventChannel', (e) => this.getEvent(JSON.parse(e.data)));
-    this.eventSource.addEventListener('newEventChannel', (e) => this.getEvent(JSON.parse(e.data)));
-    this.eventSource.addEventListener('newProcessChannel', (e) => this.getProcess(JSON.parse(e.data)));
-    // this.eventSource.addEventListener('redisTweetCount', (e) => this.getCount(e.data));
-    // this.eventSource.addEventListener('kafkaTweetStreamChannel', (e) => this.getTweet(JSON.parse(e.data)));
-    this.eventSource.addEventListener('closedConnection', () => this.stopUpdates());
+    this.eventSource.addEventListener('redisTweetCount', (e) => this.getTweetCount(JSON.parse(e.data)));
+    this.eventSource.addEventListener('redisTweetResult', (e) => this.getTweetResult(JSON.parse(e.data)));
+  }
 
+  getTweetCount(sseData) {
+    this.setState({
+      sse: {
+        ...this.state.sse,
+        [sseData.key]: sseData.value
+      }
+    })
+    // let val = this.state.sse;
+    // for (var key in val) {
+    //   console.log(key + ":" + val[key])
+    // }
+  }
+
+  getTweetResult(sseData){
+      this.setState({
+        sse: {
+          ...this.state.sse,
+          [sseData.key]: JSON.stringify(sseData.value)
+        }
+      })
+      
   }
 
   getEventAPI() {
-    // alert("Call Get REST API for events")
+    console.log("GET REST API for events")
+    console.log(process.env.REACT_APP_BACKEND_EVENTS)
     const axios = require('axios');
-    // fetch("https://jsonplaceholder.typicode.com/users")
-    // fetch("http://localhost:3000/events")
-    // .then(response=>response.json())
-    // .then(response=>console.log(JSON.stringify(response)))
     axios.get(process.env.REACT_APP_BACKEND_EVENTS).then(
       result => {
-        // alert(result)
         this.setState({
           isEventDataLoaded: true,
           events: result.data
         });
       },
       error => {
-        alert("Error")
+        console.log(error);
         this.setState({
           isEventDataLoaded: false,
           error
         });
       }
-    );
-    
+    );    
   }
 
   postEventAPI(newEvent) {
-    // alert(JSON.stringify(newEvent))
+    console.log("POST REST API for a new event")
+    console.log(process.env.REACT_APP_BACKEND_EVENTS)
     const axios = require('axios');
     axios.post(process.env.REACT_APP_BACKEND_EVENTS, newEvent)
       .then(function(response){
-        console.log("POST Sucess")
-        // alert(JSON.stringify(response));
-        //Perform action based on response
+        console.log("POST Success")
       })
       .catch(function(error){
         console.log("POST Error")
         console.log(error);
-        //Perform action based on error
       });
-    // this.getEventAPI()
   }
 
   getProcessAPI() {
-    // alert("Call Get REST API for processes")
+    console.log("GET REST API for processes")
+    console.log(process.env.REACT_APP_BACKEND_PROCESSING_TECH)
     const axios = require('axios');
-    // fetch("https://jsonplaceholder.typicode.com/users")
-    // fetch("http://localhost:3000/events")
-    // .then(response=>response.json())
-    // .then(response=>console.log(JSON.stringify(response)))
     axios.get(process.env.REACT_APP_BACKEND_PROCESSING_TECH).then(
       result => {
         this.setState({
@@ -104,20 +111,17 @@ class App extends Component {
   }
   
   postProcessAPI(newProcess) {
-    // alert(JSON.stringify(newProcess))
+    console.log("POST REST API for a new processe")
+    console.log(process.env.REACT_APP_BACKEND_PROCESSING_TECH)
     const axios = require('axios');
     axios.post(process.env.REACT_APP_BACKEND_PROCESSING_TECH, newProcess)
       .then(function(response){
-        console.log("POST Sucess")
-        // alert(JSON.stringify(response));
-        //Perform action based on response
+        console.log("POST Success")
       })
       .catch(function(error){
         console.log("POST Error")
         console.log(error);
-        //Perform action based on error
       });
-    // this.getProcessAPI()
   }
 
   getTweet(newTweet) {
@@ -127,35 +131,21 @@ class App extends Component {
   }
 
   getEvent(newEvent) {
-    // alert(newEvent)
     const newEventData = this.state.events.concat(newEvent);
     this.setState(Object.assign({}, {events: newEventData}))
   }
 
   getProcess(newProcess) {
-    // alert(newProcess)
     const newProcessData = this.state.processes.concat(newProcess);
     this.setState(Object.assign({}, {processes: newProcessData}))
   }
 
-  // getCount(newCount) {
-  //   this.setState(Object.assign({}, {count: newCount}))
-  // }
-  
-  // stopUpdates() {
-  //   this.eventSource.close();
-  // }
-
   handleNewEvent(newEvent) {
-    //Call post API
-    // alert(JSON.stringify(newEvent))
     this.postEventAPI(newEvent)
-    // this.getEventAPI()
   }
 
   handleNewProcess(newProcess) {
     this.postProcessAPI(newProcess)
-    // this.getProcessAPI()
   }
 
   render() {
@@ -165,8 +155,7 @@ class App extends Component {
           <Header />
           <nav className="navbar navbar-expand-lg navbar-light bg-light">
           <ul className="navbar-nav mr-auto">
-            <li><Link to={'/events'} className="nav-link">Active Events</Link></li>
-            <li><Link to={'/historical_events'} className="nav-link">Historical Events</Link></li>
+            <li><Link to={'/events'} className="nav-link">Events</Link></li>
             <li><Link to={'/processing_techniques'} className="nav-link">Processing Techniques</Link></li>
           </ul>
           </nav>
@@ -178,16 +167,14 @@ class App extends Component {
               />  
               <Route exact path='/events' 
                 render={() => <EventsMainPage eventsData={this.state.events} 
-                onNewEvent={this.handleNewEvent}
-                />}
-              />  
-              <Route exact path='/historical_events' 
-                render={() => <HistoricalEventsMainPage
+                  onNewEvent={this.handleNewEvent}
+                  sse={this.state.sse}
                 />}
               />  
               <Route path='/processing_techniques' 
                 render={() => <ProcessesMainPage processesData={this.state.processes}
-                onNewProcess={this.handleNewProcess}
+                  onNewProcess={this.handleNewProcess}
+                  sse={this.state.sse}
                 />}
               />
           </Switch>
