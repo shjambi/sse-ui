@@ -24,20 +24,28 @@ class App extends Component {
     this.eventSource = new EventSource(process.env.REACT_APP_EVENTSOURCE)
   }
 
-  componentDidMount() {
-    this.getEventAPI()
-    this.getProcessAPI()
+  componentWillMount() {
     this.eventSource.addEventListener('redisTweetCount', (e) => this.getTweetCount(JSON.parse(e.data)));
     this.eventSource.addEventListener('redisTweetResult', (e) => this.getTweetResult(JSON.parse(e.data)));
   }
 
+  componentDidMount() {
+    this.getEventAPI()
+    this.getProcessAPI()
+  }
+
+  componentWillUnmount() {
+    if(this.eventSource)
+      this.eventSource.close();
+  }
+
   getTweetCount(sseData) {
     this.setState({
-      sse: {
+      sse: { 
         ...this.state.sse,
         [sseData.key]: sseData.value
       }
-    })
+    });
     // let val = this.state.sse;
     // for (var key in val) {
     //   console.log(key + ":" + val[key])
@@ -50,8 +58,7 @@ class App extends Component {
           ...this.state.sse,
           [sseData.key]: JSON.stringify(sseData.value)
         }
-      })
-      
+      });   
   }
 
   getEventAPI() {

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import SlidingPane from 'react-sliding-pane';
 import 'react-sliding-pane/dist/react-sliding-pane.css';
 import EventMonitor from './EventMonitor'
+import { object } from 'prop-types';
 
 class Event extends Component {
     constructor(props) {
@@ -11,11 +12,16 @@ class Event extends Component {
             name: this.props.event.name,
             terms: this.props.event.terms,
             active: this.props.event.active,
-            counter: (this.props.sse[this.props.counter]) ? this.props.sse[this.props.counter] : 0,
+            counter: 0,
             isPaneOpen: false,
             isPaneOpenLeft: false,
         };
         this.handleSubmit = this.handleSubmit.bind(this);
+    }
+
+    componentDidMount() {
+        this.setState(Object.assign({}, 
+        {counter: this.props.sse[this.props.counter] ? this.props.sse[this.props.counter] : 0}));
     }
 
     getStyle= () => {
@@ -76,8 +82,8 @@ class Event extends Component {
             </td>
             <td style={{paddingTop: '15px', textAlign: 'center'}}>         
                 {this.props.sse[this.props.counter] ? 
-                this.props.sse[this.props.counter] :
-                this.state.counter}
+                this.props.sse[this.props.counter] 
+                : this.state.counter}
             </td>
             <td style={{paddingTop: '15px', textAlign: 'center'}}>
                 {this.state.active ? "Active" : "Inactive"}
