@@ -8,7 +8,7 @@ class EventMonitor extends Component {
             processList: [],
         };
     }
-    componentDidMount() {
+    componentWillMount() {
         this.getMonitoredJobAPI()
     }
 
@@ -48,7 +48,7 @@ class EventMonitor extends Component {
     render() {
         return( 
             <div>     
-                { this.state.processList.length > 0 ?       
+                {this.state.processList.length > 0 ?       
                 <table>
                 <thead>
                     <tr>
@@ -88,7 +88,8 @@ class EventMonitor extends Component {
                         />
                     </td>
                     </tr>                  
-                ))}
+                ))
+                }
                 </tbody>
                 </table>
                 : <div>No processing techniques found</div>

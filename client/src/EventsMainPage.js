@@ -20,12 +20,26 @@ class EventsMainPage extends Component {
     this.props.onNewEvent(newEvent);
   }
 
+  historicalFound = () => {
+    let found = false;
+    let i = 0;
+    while(!found && i<this.props.eventsData.length){
+      alert(this.props.eventsData[0].active)
+      if (!this.props.eventsData[0].active)     
+        found = true;
+      i = i+1
+    }
+    console.log(found)
+    return found
+  }
+
   createTable = () => {
     let table = []
     let val = this.props.sse;
     for (var key in val) {
       // console.log("this is my key" + key + " and this is my value " + val[key])
-      table.push(<tr><td>{`${key}`}: </td><td>{`${val[key]}`}</td></tr>)
+      if (!key.includes('result'))
+        table.push(<tr><td>{`${key}`}: </td><td>{`${val[key]}`}</td></tr>)
     }
     return table
   }
@@ -46,15 +60,49 @@ class EventsMainPage extends Component {
               </tr>
           </thead>
             {this.props.eventsData.map((event) => ( 
+              event.active ?
                 <Event key={event.id}             
                 event={event} 
                 counter={event.name.split(" ").join("_").toLowerCase()+":counter"}
                 sse={this.props.sse}/> 
+              : null
             ))}
         </table>
         : <h6><br/>No events found.</h6>
         }
-        {/* <table>
+    
+        { this.historicalFound ? 
+        <div>
+        <br/>
+        <br/>
+        <h5>Inactive Events</h5>
+        <table>
+          <thead>
+              <tr>
+              <th style={{width: '240px', textAlign: 'left'}}>Name</th>
+              <th style={{width: '120px', textAlign: 'center'}}>Tweet Count</th>
+              <th style={{width: '120px', textAlign: 'center'}}>Current Status</th>
+              <th style={{width: '120px', textAlign: 'center'}}>Change Status</th>
+              <th style={{width: '160px', textAlign: 'center'}}>Job Details</th>
+              </tr>
+          </thead>
+            {this.props.eventsData.map((event) => ( 
+              !event.active ?
+                <Event key={event.id}             
+                event={event} 
+                counter={event.name.split(" ").join("_").toLowerCase()+":counter"}
+                sse={this.props.sse}/> 
+              : null
+            ))}
+        </table>
+        </div>
+        : null        
+        }
+        
+
+        {/* <br/>
+        <br/>
+        <table>
         {this.createTable()}
         </table> */}
       </div>

@@ -1,5 +1,9 @@
 const http = require('http');
 
+// Ref: Server-Sent Events with React
+// https://auth0.com/blog/developing-real-time-web-applications-with-server-sent-events/
+// https://www.jsdiaries.com/dynamic-website-design-with-event-source/
+
 http.createServer((request, response) => {
   console.log(`Request url: ${request.url}`);
 
@@ -19,7 +23,8 @@ http.createServer((request, response) => {
 
     checkConnectionToRestore(request, response, eventHistory);
     getCounterFromRedis(response, eventHistory);
-    getCountFromRedis(response, eventHistory);
+    getProcessedFromRedis(response, eventHistory);
+    // getCountFromRedis(response, eventHistory);
     getResultFromRedis(response, eventHistory);
     // readTweetFromKafka(response, eventHistory);
     // getAllEventsFromPostgres(response, eventHistory)
@@ -43,6 +48,42 @@ function getCounterFromRedis(response, eventHistory){
     console.log('Something went wrong ', err)
   });
   client.keys('*:counter', function(error, keys) {
+    if (error) throw error;
+    // console.log('GET keys ->', keys)
+    for (let j = 0; j < keys.length; j++){
+      var i = 0;
+      function f() {
+          // console.log(keys[j],i);
+          if (!response.finished) {
+            client.get(keys[j], function(error, count) {
+              if (error) throw error;
+              // console.log(keys[j] + ' GET new count ->', count)
+              const eventString = `event: redisTweetCount\ndata: {"key":"${keys[j]}", "value":"${count}"}\n\n`;    
+              response.write(eventString);
+              eventHistory.push(eventString);
+            }); 
+          }             
+          i++;
+          if( i < max ){
+              setTimeout( f, 1000 );
+          }
+      }
+      f();
+    }
+  });
+}
+
+function getProcessedFromRedis(response, eventHistory){
+  var max = 2147483647;
+  var redis = require('redis');
+  var client    = redis.createClient({
+    port      : process.env.REDIS_PORT,
+    host      : process.env.REDIS_HOST
+  });
+  client.on('error', function(err){
+    console.log('Something went wrong ', err)
+  });
+  client.keys('*:processed', function(error, keys) {
     if (error) throw error;
     // console.log('GET keys ->', keys)
     for (let j = 0; j < keys.length; j++){
